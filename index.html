@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Plan d'épargne 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="images/logo.png" />
+
+  <!-- Lien vers le CSS externe -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app">
+    <!-- ========= COLONNE CALENDRIER ========= -->
+    <section>
+      <header>
+        <h1>Plan d'épargne 2026 | Bagui Serge </h1>
+        <p class="subtitle">
+          Suite arithmétique de 100 F à 1 000 F, cycle de 10 jours sur toute l'année 2026.
+        </p>
+      </header>
+
+      <div class="calendar-header">
+        <div>
+          <div class="calendar-title" id="monthLabel"></div>
+          <div class="year-label">Année 2026 uniquement</div>
+        </div>
+        <div class="month-nav">
+          <button class="btn btn-sm" id="prevMonthBtn" type="button">◀</button>
+          <button class="btn btn-sm btn-outline" id="todayBtn" type="button">
+            Mois courant
+          </button>
+          <button class="btn btn-sm" id="nextMonthBtn" type="button">▶</button>
+        </div>
+      </div>
+
+      <div class="calendar-grid" id="calendarGrid">
+        <!-- Noms des jours + jours générés en JS -->
+      </div>
+    </section>
+
+    <!-- ========= COLONNE INFOS ========= -->
+    <aside class="side-panel">
+      <!-- Carte total épargne -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Total épargné</div>
+            <div class="card-subtitle">Objectif : 200 000 F CFA</div>
+          </div>
+          <div class="amount amount-green" id="totalAmount">0 F CFA</div>
+        </div>
+
+        <div class="progress-container">
+          <div class="progress-bar-bg">
+            <div class="progress-bar-fill" id="progressBar"></div>
+          </div>
+          <div class="progress-text">
+            <span id="progressPercent">0%</span>
+            <span id="remainingAmount">Reste 200 000 F</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Carte jour sélectionné -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Jour sélectionné</div>
+            <div class="card-subtitle" id="selectedDateLabel">
+              Aucun jour sélectionné
+            </div>
+          </div>
+          <div class="amount-small" id="selectedAmountLabel">
+            0 F CFA
+          </div>
+        </div>
+
+        <div class="current-day-info">
+          <div>
+            Cotisation du jour :
+            <span class="highlight" id="selectedAmountText">—</span>
+          </div>
+          <div>
+            Statut :
+            <span id="selectedStatusBadge" class="status-badge status-future">
+              Aucun
+            </span>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button
+            class="btn btn-primary"
+            id="confirmBtn"
+            type="button"
+            disabled
+          >
+            J'ai cotisé ce jour
+          </button>
+
+          <button
+            class="btn btn-sm btn-outline"
+            id="cancelContributionBtn"
+            type="button"
+            disabled
+          >
+            Annuler la cotisation
+          </button>
+
+          <button class="btn btn-sm btn-outline" id="unselectBtn" type="button">
+            Désélectionner
+          </button>
+        </div>
+        <p class="note">
+          Un jour déjà validé ne peut pas être validé deux fois. Les données
+          sont sauvegardées automatiquement dans votre navigateur (localStorage).
+        </p>
+      </div>
+
+      <!-- Carte rappel règle -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Rappel de la règle</div>
+        </div>
+        <ul class="muted" style="padding-left: 1rem; font-size: 0.8rem;">
+          <li>Jour 1 du cycle : 100 F CFA.</li>
+          <li>Chaque jour suivant : +100 F.</li>
+          <li>Jour 10 : 1 000 F CFA.</li>
+          <li>Cycle de 10 jours, puis retour à 100 F.</li>
+          <li>Cycle répété sur toute l'année 2026.</li>
+          <li>Validation obligatoire dans l'ordre (jour par jour).</li>
+        </ul>
+      </div>
+    </aside>
+  </div>
+
+  <!-- JavaScript externe -->
+  <script src="main.js"></script>
+</body>
+</html>
