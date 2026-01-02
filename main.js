@@ -9,6 +9,7 @@ const GOAL_AMOUNT = 200000;
 
 // Clé localStorage pour isoler les données de cette appli
 const STORAGE_KEY = "epargne_2026_calendar";
+const USER_NAME_KEY = "epargne_2026_user_name"; // pour le nom utilisateur [web:5][web:164]
 
 // ================== ÉTAT EN MÉMOIRE ==================
 const state = {
@@ -130,6 +131,12 @@ const prevMonthBtnEl = document.getElementById("prevMonthBtn");
 const nextMonthBtnEl = document.getElementById("nextMonthBtn");
 const todayBtnEl = document.getElementById("todayBtn");
 
+// Écran d'accueil / nom utilisateur
+const userNameDisplayEl = document.getElementById("userNameDisplay");
+const welcomeOverlayEl = document.getElementById("welcomeOverlay");
+const userNameInputEl = document.getElementById("userNameInput");
+const startAppBtnEl = document.getElementById("startAppBtn");
+
 const MONTH_NAMES = [
   "Janvier",
   "Février",
@@ -153,6 +160,33 @@ function formatAmount(amount) {
   );
 }
 
+// ================== NOM UTILISATEUR ==================
+function setUserName(name) {
+  const cleanName = name && name.trim() ? name.trim() : "Invité";
+  userNameDisplayEl.textContent = cleanName;
+}
+
+function showWelcomeOverlay() {
+  welcomeOverlayEl.classList.remove("welcome-hidden");
+}
+
+function hideWelcomeOverlay() {
+  welcomeOverlayEl.classList.add("welcome-hidden");
+}
+
+function handleStartApp() {
+  const name = userNameInputEl.value.trim();
+  if (!name) {
+    alert("Merci de saisir ton nom pour personnaliser ton plan d'épargne.");
+    return;
+  }
+
+  localStorage.setItem(USER_NAME_KEY, name);
+  setUserName(name);
+  hideWelcomeOverlay();
+}
+
+// ================== TOTAL & JOUR SÉLECTIONNÉ ==================
 function updateTotalUI() {
   totalAmountEl.textContent = formatAmount(state.total);
 
@@ -389,6 +423,15 @@ function init() {
   loadFromStorage();
   updateTotalUI();
 
+  // Gérer le nom utilisateur
+  const storedName = localStorage.getItem(USER_NAME_KEY);
+  if (storedName && storedName.trim()) {
+    setUserName(storedName);
+    hideWelcomeOverlay();
+  } else {
+    showWelcomeOverlay();
+  }
+
   const now = new Date();
   if (now.getFullYear() === YEAR) {
     state.currentMonth = now.getMonth();
@@ -405,6 +448,17 @@ function init() {
   prevMonthBtnEl.addEventListener("click", goToPrevMonth);
   nextMonthBtnEl.addEventListener("click", goToNextMonth);
   todayBtnEl.addEventListener("click", goToTodayMonth);
+
+  // Bouton "Commencer" de l'écran d'accueil
+  startAppBtnEl.addEventListener("click", handleStartApp);
+
+  // Valider avec Entrée dans le champ nom
+  userNameInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleStartApp();
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", init);

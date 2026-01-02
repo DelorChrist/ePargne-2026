@@ -364,3 +364,73 @@ h1 {
     min-height: 52px;
   }
 }
+
+/* ========= ÉCRAN D'ACCUEIL ========= */
+.welcome-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.welcome-card {
+  background: #ffffff;
+  max-width: 360px;
+  width: 90%;
+  border-radius: 0.9rem;
+  padding: 1.5rem 1.3rem;
+  text-align: center;
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+}
+
+.welcome-card h2 {
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
+}
+
+.welcome-card p {
+  margin-bottom: 0.8rem;
+  font-size: 0.9rem;
+}
+
+.welcome-label {
+  display: block;
+  text-align: left;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+  color: var(--gray-600);
+}
+
+.welcome-input {
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--gray-300);
+  font-size: 0.9rem;
+  margin-bottom: 0.8rem;
+}
+
+.welcome-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3);
+}
+
+.welcome-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.welcome-note {
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+  color: var(--gray-600);
+}
+
+/* Quand l'écran d'accueil est caché */
+.welcome-hidden {
+  display: none;
+}

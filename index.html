@@ -13,11 +13,37 @@
 </head>
 
 <body>
+  <!-- Écran d'accueil -->
+  <div id="welcomeOverlay" class="welcome-overlay">
+    <div class="welcome-card">
+      <h2>Bienvenue 👋</h2>
+      <p>Es-tu prêt à épargner pour 2026 ?</p>
+
+      <label for="userNameInput" class="welcome-label">
+        Ton nom :
+      </label>
+      <input
+        type="text"
+        id="userNameInput"
+        class="welcome-input"
+        placeholder="Ex : Bagui Serge"
+      />
+
+      <button id="startAppBtn" class="btn btn-primary welcome-btn">
+        Commencer
+      </button>
+
+      <p class="welcome-note">
+        Ton nom sera enregistré dans ce navigateur pour personnaliser ton plan d'épargne.
+      </p>
+    </div>
+  </div>
+
   <div class="app">
     <!-- ========= COLONNE CALENDRIER ========= -->
     <section>
       <header>
-        <h1>Plan d'épargne 2026 | Bagui Serge </h1>
+        <h1>Plan d'épargne 2026 | <span id="userNameDisplay">Bagui Serge</span></h1>
         <p class="subtitle">
           Suite arithmétique de 100 F à 1 000 F, cycle de 10 jours sur toute l'année 2026.
         </p>
