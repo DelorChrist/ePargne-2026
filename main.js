@@ -1,23 +1,18 @@
 // ================== CONFIGURATION GÉNÉRALE ==================
 const YEAR = 2026;
-const START_DATE = new Date(YEAR, 0, 1); // 1er janvier 2026
-const END_DATE = new Date(YEAR, 11, 31); // 31 décembre 2026
+const START_DATE = new Date(YEAR, 0, 1);
+const END_DATE = new Date(YEAR, 11, 31);
 const CYCLE_LENGTH = 10;
-const BASE_AMOUNT = 100; // 100 F CFA
-const STEP_AMOUNT = 100; // +100 F par jour
+const STEP_AMOUNT = 100;
 const GOAL_AMOUNT = 200000;
-
-// Clé localStorage pour isoler les données de cette appli
-const STORAGE_KEY = "epargne_2026_calendar";
-const USER_NAME_KEY = "epargne_2026_user_name"; // pour le nom utilisateur [web:5][web:164]
+const STORAGE_KEY = "epargne_2026_profiles";
 
 // ================== ÉTAT EN MÉMOIRE ==================
 const state = {
-  currentMonth: 0, // 0 = janvier
-  selectedDate: null, // string "YYYY-MM-DD"
-  // Structure: { "YYYY-MM-DD": { amount: number, validated: boolean } }
-  days: {},
-  total: 0
+  currentMonth: 0,
+  selectedDate: null,
+  profiles: {},
+  currentProfileId: null
 };
 
 // ================== OUTILS DE DATE ==================
@@ -47,41 +42,36 @@ function isToday(date) {
   );
 }
 
-// Retourne l'index du jour dans l'année 2026 (0 = 1er janvier)
 function getDayIndexInYear(date) {
   if (date.getFullYear() !== YEAR) return -1;
   const diffMs = date.getTime() - START_DATE.getTime();
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-// Vérifie que tous les jours avant "date" sont déjà validés
-function canValidateDate(date) {
-  const index = getDayIndexInYear(date);
-  if (index <= 0) {
-    // 1er janvier (index 0) est toujours validable
-    return true;
-  }
-  for (let i = 0; i < index; i++) {
-    const d = new Date(YEAR, 0, 1 + i);
-    const key = formatDateKey(d);
-    const info = state.days[key];
-    if (!info || !info.validated) {
-      return false;
-    }
-  }
-  return true;
+// ================== GESTION PROFILS ==================
+function getCurrentProfile() {
+  if (!state.currentProfileId) return null;
+  return state.profiles[state.currentProfileId] || null;
+}
+
+function normalizeProfileId(name) {
+  return name.trim().toLowerCase().replace(/\s+/g, "_");
 }
 
 // ================== CALCUL COTISATION ==================
 function getContributionAmount(date) {
+  const profile = getCurrentProfile();
+  if (!profile) return 0;
+
   if (date < START_DATE || date > END_DATE || date.getFullYear() !== YEAR) {
     return 0;
   }
 
+  const baseAmount = profile.baseAmount || 100;
   const diffMs = date.getTime() - START_DATE.getTime();
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)); // 0 pour 1er janvier
-  const cyclePosition = (diffDays % CYCLE_LENGTH) + 1; // 1 à 10
-  return BASE_AMOUNT + (cyclePosition - 1) * STEP_AMOUNT;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const cyclePosition = (diffDays % CYCLE_LENGTH) + 1;
+  return baseAmount + (cyclePosition - 1) * STEP_AMOUNT;
 }
 
 // ================== LOCAL STORAGE ==================
@@ -89,12 +79,14 @@ function loadFromStorage() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
+      state.profiles = {};
+      state.currentProfileId = null;
       return;
     }
     const data = JSON.parse(raw);
     if (data && typeof data === "object") {
-      state.days = data.days || {};
-      state.total = data.total || 0;
+      state.profiles = data.profiles || {};
+      state.currentProfileId = data.currentProfileId || null; // on RESTAURE le client courant
     }
   } catch (e) {
     console.error("Erreur de lecture localStorage", e);
@@ -102,10 +94,21 @@ function loadFromStorage() {
 }
 
 function saveToStorage() {
+  // NE SAUVE PAS LE PROFIL INVITÉ
+  const profilesToSave = {};
+  Object.values(state.profiles).forEach((p) => {
+    if (p.id !== "guest") {
+      profilesToSave[p.id] = p;
+    }
+  });
+
   const payload = {
-    days: state.days,
-    total: state.total
+    profiles: profilesToSave,
+    currentProfileId: state.currentProfileId === "guest"
+      ? null
+      : state.currentProfileId
   };
+
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch (e) {
@@ -113,7 +116,28 @@ function saveToStorage() {
   }
 }
 
-// ================== MISE À JOUR UI GLOBALE ==================
+// ================== RÈGLE ORDRE DE COTISATION ==================
+function canValidateDate(date) {
+  const profile = getCurrentProfile();
+  if (!profile) return false;
+
+  const index = getDayIndexInYear(date);
+  if (index <= 0) return true;
+
+  for (let i = 0; i < index; i++) {
+    const d = new Date(YEAR, 0, 1 + i);
+    const key = formatDateKey(d);
+    const info = profile.days[key];
+    if (!info || !info.validated) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// ================== DOM ELEMENTS ==================
+const appRootEl = document.getElementById("appRoot");
+
 const monthLabelEl = document.getElementById("monthLabel");
 const calendarGridEl = document.getElementById("calendarGrid");
 const totalAmountEl = document.getElementById("totalAmount");
@@ -130,80 +154,140 @@ const unselectBtnEl = document.getElementById("unselectBtn");
 const prevMonthBtnEl = document.getElementById("prevMonthBtn");
 const nextMonthBtnEl = document.getElementById("nextMonthBtn");
 const todayBtnEl = document.getElementById("todayBtn");
-
-// Écran d'accueil / nom utilisateur
+const currentProfileInfoEl = document.getElementById("currentProfileInfo");
 const userNameDisplayEl = document.getElementById("userNameDisplay");
-const welcomeOverlayEl = document.getElementById("welcomeOverlay");
-const userNameInputEl = document.getElementById("userNameInput");
-const startAppBtnEl = document.getElementById("startAppBtn");
+const userBaseAmountDisplayEl = document.getElementById("userBaseAmountDisplay");
+const logoutBtnEl = document.getElementById("logoutBtn");
+const switchToAuthBtnEl = document.getElementById("switchToAuthBtn");
 
+// Auth / accueil
+const authOverlayEl = document.getElementById("authOverlay");
+const loginModeBtnEl = document.getElementById("loginModeBtn");
+const signupModeBtnEl = document.getElementById("signupModeBtn");
+const loginFormEl = document.getElementById("loginForm");
+const signupFormEl = document.getElementById("signupForm");
+const loginNameInputEl = document.getElementById("loginNameInput");
+const loginPinInputEl = document.getElementById("loginPinInput");
+const signupNameInputEl = document.getElementById("signupNameInput");
+const signupPinInputEl = document.getElementById("signupPinInput");
+const baseAmountInputEl = document.getElementById("baseAmountInput");
+const loginBtnEl = document.getElementById("loginBtn");
+const signupBtnEl = document.getElementById("signupBtn");
+const guestBtnEl = document.getElementById("guestBtn");
+const authErrorEl = document.getElementById("authError");
+const closeAuthBtnEl = document.getElementById("closeAuthBtn");
+
+// Overlay de bienvenue
+const welcomeOverlayEl = document.getElementById("welcomeOverlay");
+const welcomeTitleEl = document.getElementById("welcomeTitle");
+const welcomeMessageEl = document.getElementById("welcomeMessage");
+const welcomeContinueBtnEl = document.getElementById("welcomeContinueBtn");
+
+// ================== UTILS ==================
 const MONTH_NAMES = [
-  "Janvier",
-  "Février",
-  "Mars",
-  "Avril",
-  "Mai",
-  "Juin",
-  "Juillet",
-  "Août",
-  "Septembre",
-  "Octobre",
-  "Novembre",
-  "Décembre"
+  "Janvier","Février","Mars","Avril","Mai","Juin",
+  "Juillet","Août","Septembre","Octobre","Novembre","Décembre"
 ];
 
-const WEEKDAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
+const WEEKDAYS = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 
 function formatAmount(amount) {
-  return (
-    amount.toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " F CFA"
-  );
+  return amount.toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " F CFA";
 }
 
-// ================== NOM UTILISATEUR ==================
-function setUserName(name) {
-  const cleanName = name && name.trim() ? name.trim() : "Invité";
-  userNameDisplayEl.textContent = cleanName;
+// ================== AFFICHAGE APP / OVERLAYS ==================
+function showApp() {
+  appRootEl.classList.remove("app-hidden");
 }
 
-function showWelcomeOverlay() {
-  welcomeOverlayEl.classList.remove("welcome-hidden");
+function hideApp() {
+  appRootEl.classList.add("app-hidden");
 }
 
-function hideWelcomeOverlay() {
-  welcomeOverlayEl.classList.add("welcome-hidden");
+function showAuthOverlay() {
+  authOverlayEl.classList.remove("welcome-hidden");
 }
 
-function handleStartApp() {
-  const name = userNameInputEl.value.trim();
-  if (!name) {
-    alert("Merci de saisir ton nom pour personnaliser ton plan d'épargne.");
+function hideAuthOverlay() {
+  authOverlayEl.classList.add("welcome-hidden");
+  setAuthError("");
+}
+
+function showWelcomeMessage(type) {
+  const profile = getCurrentProfile();
+  if (!profile || profile.id === "guest") return;
+
+  if (type === "signup") {
+    welcomeTitleEl.textContent = "Bienvenue " + profile.name;
+    welcomeMessageEl.textContent =
+      "Ton plan d'épargne est créé avec un montant de départ de " +
+      profile.baseAmount.toLocaleString("fr-FR") +
+      " F. Tu peux commencer à cotiser jour après jour.";
+  } else if (type === "login") {
+    welcomeTitleEl.textContent = "Bon retour " + profile.name;
+    welcomeMessageEl.textContent =
+      "Tu peux reprendre ta cotisation exactement là où tu t'es arrêté.";
+  } else {
     return;
   }
 
-  localStorage.setItem(USER_NAME_KEY, name);
-  setUserName(name);
-  hideWelcomeOverlay();
+  welcomeOverlayEl.classList.remove("welcome-hidden");
+  hideApp();
+}
+
+function hideWelcomeMessage() {
+  welcomeOverlayEl.classList.add("welcome-hidden");
+  showApp();
+}
+
+function setAuthError(message) {
+  authErrorEl.textContent = message;
+  authErrorEl.style.display = message ? "block" : "none";
+}
+
+// ================== NOM & PROFIL COURANT + BOUTONS ==================
+function updateProfileHeader() {
+  const profile = getCurrentProfile();
+
+  if (!profile || profile.id === "guest") {
+    userNameDisplayEl.textContent = "Invité";
+    userBaseAmountDisplayEl.textContent = profile ? "(mode invité)" : "";
+    currentProfileInfoEl.textContent = "Invité (aucune sauvegarde)";
+    logoutBtnEl.style.display = "none";
+    switchToAuthBtnEl.style.display = "inline-flex";
+    return;
+  }
+
+  userNameDisplayEl.textContent = profile.name;
+  userBaseAmountDisplayEl.textContent =
+    "(départ " + profile.baseAmount.toLocaleString("fr-FR") + " F)";
+  currentProfileInfoEl.textContent =
+    profile.name + " | départ " + profile.baseAmount.toLocaleString("fr-FR") + " F";
+
+  logoutBtnEl.style.display = "inline-flex";
+  switchToAuthBtnEl.style.display = "none";
 }
 
 // ================== TOTAL & JOUR SÉLECTIONNÉ ==================
 function updateTotalUI() {
-  totalAmountEl.textContent = formatAmount(state.total);
+  const profile = getCurrentProfile();
+  const total = profile ? profile.total : 0;
 
-  const progress = Math.min(
-    100,
-    Math.round((state.total / GOAL_AMOUNT) * 100)
-  );
+  totalAmountEl.textContent = formatAmount(total);
+
+  const progress = Math.min(100, Math.round((total / GOAL_AMOUNT) * 100));
   progressBarEl.style.width = progress + "%";
   progressPercentEl.textContent = progress + " %";
 
-  const remaining = Math.max(GOAL_AMOUNT - state.total, 0);
+  const remaining = Math.max(GOAL_AMOUNT - total, 0);
   remainingAmountEl.textContent =
     "Reste " + remaining.toLocaleString("fr-FR") + " F";
 }
 
 function updateSelectedDayUI() {
-  if (!state.selectedDate) {
+  const profile = getCurrentProfile();
+
+  if (!state.selectedDate || !profile) {
     selectedDateLabelEl.textContent = "Aucun jour sélectionné";
     selectedAmountLabelEl.textContent = "0 F CFA";
     selectedAmountTextEl.textContent = "—";
@@ -217,27 +301,22 @@ function updateSelectedDayUI() {
   const date = parseDateKey(state.selectedDate);
   const amount = getContributionAmount(date);
   const options = {
-    weekday: "long",
-    year: "numeric",
-    month: "long",
-    day: "numeric"
+    weekday: "long", year: "numeric", month: "long", day: "numeric"
   };
-  const dateText = date.toLocaleDateString("fr-FR", options);
-
-  selectedDateLabelEl.textContent = dateText;
+  selectedDateLabelEl.textContent = date.toLocaleDateString("fr-FR", options);
   selectedAmountLabelEl.textContent = formatAmount(amount);
   selectedAmountTextEl.textContent = formatAmount(amount);
 
-  const info = state.days[state.selectedDate];
+  const info = profile.days[state.selectedDate];
   const todayDate = new Date();
-  todayDate.setHours(0, 0, 0, 0);
+  todayDate.setHours(0,0,0,0);
   const isFuture = date > todayDate;
 
   if (info && info.validated) {
     selectedStatusBadgeEl.textContent = "Cotisation validée";
     selectedStatusBadgeEl.className = "status-badge status-ok";
     confirmBtnEl.disabled = true;
-    cancelContributionBtnEl.disabled = false; // on peut annuler
+    cancelContributionBtnEl.disabled = false;
   } else if (isFuture) {
     selectedStatusBadgeEl.textContent = "Jour futur";
     selectedStatusBadgeEl.className = "status-badge status-future";
@@ -253,9 +332,9 @@ function updateSelectedDayUI() {
 
 // ================== RENDU DU CALENDRIER ==================
 function renderCalendar() {
+  const profile = getCurrentProfile();
   calendarGridEl.innerHTML = "";
 
-  // Entêtes jours de la semaine
   WEEKDAYS.forEach((name) => {
     const div = document.createElement("div");
     div.className = "weekday";
@@ -265,19 +344,16 @@ function renderCalendar() {
 
   const firstDayOfMonth = new Date(YEAR, state.currentMonth, 1);
   const lastDayOfMonth = new Date(YEAR, state.currentMonth + 1, 0);
-  const firstWeekday = (firstDayOfMonth.getDay() + 6) % 7; // Lundi=0, Dimanche=6
+  const firstWeekday = (firstDayOfMonth.getDay() + 6) % 7;
 
-  monthLabelEl.textContent =
-    MONTH_NAMES[state.currentMonth] + " " + YEAR;
+  monthLabelEl.textContent = MONTH_NAMES[state.currentMonth] + " " + YEAR;
 
-  // Cases vides avant le 1er du mois
   for (let i = 0; i < firstWeekday; i++) {
     const emptyDiv = document.createElement("div");
     emptyDiv.className = "day empty";
     calendarGridEl.appendChild(emptyDiv);
   }
 
-  // Jours du mois
   for (let d = 1; d <= lastDayOfMonth.getDate(); d++) {
     const date = new Date(YEAR, state.currentMonth, d);
     const dateKey = formatDateKey(date);
@@ -295,13 +371,12 @@ function renderCalendar() {
       dayDiv.classList.add("selected");
     }
 
-    const info = state.days[dateKey];
-    if (info && info.validated) {
+    const profileData = profile ? profile.days[dateKey] : null;
+    if (profileData && profileData.validated) {
       dayDiv.classList.add("validated");
     }
 
-    // Visuellement désactiver les jours non encore autorisés
-    if (!canValidateDate(date) && !(info && info.validated)) {
+    if (!canValidateDate(date) && !(profileData && profileData.validated)) {
       dayDiv.classList.add("disabled");
     }
 
@@ -317,7 +392,9 @@ function renderCalendar() {
     dayDiv.appendChild(amountSpan);
 
     dayDiv.addEventListener("click", () => {
-      if (dayDiv.classList.contains("disabled") && !(info && info.validated)) {
+      if (!profile) return;
+
+      if (dayDiv.classList.contains("disabled") && !(profileData && profileData.validated)) {
         alert(
           "Vous ne pouvez pas encore sélectionner ce jour.\n" +
           "Cotisez d'abord tous les jours précédents."
@@ -325,11 +402,7 @@ function renderCalendar() {
         return;
       }
 
-      if (state.selectedDate === dateKey) {
-        state.selectedDate = null;
-      } else {
-        state.selectedDate = dateKey;
-      }
+      state.selectedDate = (state.selectedDate === dateKey) ? null : dateKey;
       updateSelectedDayUI();
       renderCalendar();
     });
@@ -338,19 +411,17 @@ function renderCalendar() {
   }
 }
 
-// ================== ACTIONS ==================
+// ================== ACTIONS CALENDRIER ==================
 function confirmContribution() {
-  if (!state.selectedDate) return;
+  const profile = getCurrentProfile();
+  if (!state.selectedDate || !profile) return;
+
   const date = parseDateKey(state.selectedDate);
   const amount = getContributionAmount(date);
-  const existing = state.days[state.selectedDate];
+  const existing = profile.days[state.selectedDate];
 
-  if (existing && existing.validated) {
-    // Sécurité : ne pas valider deux fois
-    return;
-  }
+  if (existing && existing.validated) return;
 
-  // RÈGLE : progression étape par étape
   if (!canValidateDate(date)) {
     alert(
       "Vous ne pouvez pas valider ce jour.\n" +
@@ -359,34 +430,34 @@ function confirmContribution() {
     return;
   }
 
-  state.days[state.selectedDate] = {
-    amount: amount,
-    validated: true
-  };
-  state.total += amount;
+  profile.days[state.selectedDate] = { amount, validated: true };
+  profile.total += amount;
 
-  saveToStorage();
+  if (profile.id !== "guest") {
+    saveToStorage();
+  }
+
   updateTotalUI();
   updateSelectedDayUI();
   renderCalendar();
 }
 
 function cancelContribution() {
-  if (!state.selectedDate) return;
+  const profile = getCurrentProfile();
+  if (!state.selectedDate || !profile) return;
 
-  const info = state.days[state.selectedDate];
-  if (!info || !info.validated) {
-    return;
+  const info = profile.days[state.selectedDate];
+  if (!info || !info.validated) return;
+
+  if (!confirm("Voulez-vous vraiment annuler cette cotisation ?")) return;
+
+  profile.total = Math.max(0, profile.total - info.amount);
+  delete profile.days[state.selectedDate];
+
+  if (profile.id !== "guest") {
+    saveToStorage();
   }
 
-  if (!confirm("Voulez-vous vraiment annuler cette cotisation ?")) {
-    return;
-  }
-
-  state.total = Math.max(0, state.total - info.amount);
-  delete state.days[state.selectedDate];
-
-  saveToStorage();
   updateTotalUI();
   updateSelectedDayUI();
   renderCalendar();
@@ -400,11 +471,7 @@ function unselectDay() {
 
 function goToTodayMonth() {
   const now = new Date();
-  if (now.getFullYear() === YEAR) {
-    state.currentMonth = now.getMonth();
-  } else {
-    state.currentMonth = 0;
-  }
+  state.currentMonth = (now.getFullYear() === YEAR) ? now.getMonth() : 0;
   renderCalendar();
 }
 
@@ -418,29 +485,179 @@ function goToNextMonth() {
   renderCalendar();
 }
 
+// ================== AUTH / PROFILS ==================
+function switchToLoginMode() {
+  loginModeBtnEl.classList.add("auth-toggle-btn-active");
+  signupModeBtnEl.classList.remove("auth-toggle-btn-active");
+  loginFormEl.classList.remove("auth-form-hidden");
+  signupFormEl.classList.add("auth-form-hidden");
+  setAuthError("");
+}
+
+function switchToSignupMode() {
+  signupModeBtnEl.classList.add("auth-toggle-btn-active");
+  loginModeBtnEl.classList.remove("auth-toggle-btn-active");
+  signupFormEl.classList.remove("auth-form-hidden");
+  loginFormEl.classList.add("auth-form-hidden");
+  setAuthError("");
+}
+
+function handleSignup() {
+  const name = signupNameInputEl.value.trim();
+  const pin = signupPinInputEl.value.trim();
+  let baseAmount = parseInt(baseAmountInputEl.value.trim(), 10);
+
+  if (!name) {
+    setAuthError("Merci de saisir ton nom.");
+    return;
+  }
+  if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+    setAuthError("Le PIN doit contenir exactement 4 chiffres.");
+    return;
+  }
+  if (isNaN(baseAmount) || baseAmount < 100) {
+    setAuthError("Le montant de départ doit être au minimum 100 F.");
+    return;
+  }
+
+  baseAmount = Math.round(baseAmount / 100) * 100;
+
+  const profileId = normalizeProfileId(name);
+  if (state.profiles[profileId]) {
+    setAuthError("Un profil avec ce nom existe déjà. Essaie un autre nom ou connecte-toi.");
+    return;
+  }
+
+  state.profiles[profileId] = {
+    id: profileId,
+    name,
+    pin,
+    baseAmount,
+    days: {},
+    total: 0
+  };
+  state.currentProfileId = profileId;
+  state.selectedDate = null;
+
+  saveToStorage();
+  updateProfileHeader();
+  updateTotalUI();
+  renderCalendar();
+  updateSelectedDayUI();
+  hideAuthOverlay();
+  showWelcomeMessage("signup");
+}
+
+function handleLogin() {
+  const name = loginNameInputEl.value.trim();
+  const pin = loginPinInputEl.value.trim();
+
+  if (!name || !pin) {
+    setAuthError("Merci de saisir ton nom et ton PIN.");
+    return;
+  }
+  const profileId = normalizeProfileId(name);
+  const profile = state.profiles[profileId];
+
+  if (!profile) {
+    setAuthError("Aucun profil trouvé avec ce nom. Crée un profil d'abord.");
+    return;
+  }
+  if (profile.pin !== pin) {
+    setAuthError("PIN incorrect.");
+    return;
+  }
+
+  state.currentProfileId = profileId;
+  state.selectedDate = null;
+
+  saveToStorage();
+  updateProfileHeader();
+  updateTotalUI();
+  renderCalendar();
+  updateSelectedDayUI();
+  hideAuthOverlay();
+  showWelcomeMessage("login");
+}
+
+function loginAsGuest() {
+  const profileId = "guest";
+
+  state.profiles[profileId] = {
+    id: profileId,
+    name: "Invité",
+    pin: null,
+    baseAmount: 100,
+    days: {},
+    total: 0
+  };
+
+  state.currentProfileId = profileId;
+  state.selectedDate = null;
+
+  // pas de saveToStorage pour l'invité
+  updateProfileHeader();
+  updateTotalUI();
+  renderCalendar();
+  updateSelectedDayUI();
+
+  hideAuthOverlay();
+  hideWelcomeMessage();
+  showApp();
+}
+
+function logout() {
+  state.currentProfileId = null;
+  state.selectedDate = null;
+
+  saveToStorage();
+  updateProfileHeader();
+  updateTotalUI();
+  renderCalendar();
+  updateSelectedDayUI();
+  hideApp();
+  showAuthOverlay();
+}
+
+function switchFromGuestToAuth() {
+  hideApp();
+  hideWelcomeMessage();
+  showAuthOverlay();
+}
+
+function closeAuthOverlayIfPossible() {
+  if (getCurrentProfile()) {
+    hideAuthOverlay();
+    hideWelcomeMessage();
+    showApp();
+  } else {
+    alert("Tu dois d'abord te connecter, créer un profil ou continuer en invité.");
+  }
+}
+
 // ================== INITIALISATION ==================
 function init() {
   loadFromStorage();
-  updateTotalUI();
-
-  // Gérer le nom utilisateur
-  const storedName = localStorage.getItem(USER_NAME_KEY);
-  if (storedName && storedName.trim()) {
-    setUserName(storedName);
-    hideWelcomeOverlay();
-  } else {
-    showWelcomeOverlay();
-  }
 
   const now = new Date();
-  if (now.getFullYear() === YEAR) {
-    state.currentMonth = now.getMonth();
-  } else {
-    state.currentMonth = 0;
-  }
+  state.currentMonth = (now.getFullYear() === YEAR) ? now.getMonth() : 0;
 
+  updateProfileHeader();
+  updateTotalUI();
   renderCalendar();
   updateSelectedDayUI();
+
+  const profile = getCurrentProfile();
+  if (profile && profile.id !== "guest") {
+    // client déjà connecté avant le refresh
+    hideAuthOverlay();
+    hideWelcomeMessage();
+    showApp();
+  } else {
+    // pas de client, ou invité => on reste sur la page de connexion
+    showAuthOverlay();
+    hideApp();
+  }
 
   confirmBtnEl.addEventListener("click", confirmContribution);
   cancelContributionBtnEl.addEventListener("click", cancelContribution);
@@ -449,16 +666,33 @@ function init() {
   nextMonthBtnEl.addEventListener("click", goToNextMonth);
   todayBtnEl.addEventListener("click", goToTodayMonth);
 
-  // Bouton "Commencer" de l'écran d'accueil
-  startAppBtnEl.addEventListener("click", handleStartApp);
+  loginModeBtnEl.addEventListener("click", switchToLoginMode);
+  signupModeBtnEl.addEventListener("click", switchToSignupMode);
 
-  // Valider avec Entrée dans le champ nom
-  userNameInputEl.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      handleStartApp();
-    }
+  signupBtnEl.addEventListener("click", handleSignup);
+  signupNameInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); handleSignup(); }
   });
+  signupPinInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); handleSignup(); }
+  });
+  baseAmountInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); handleSignup(); }
+  });
+
+  loginBtnEl.addEventListener("click", handleLogin);
+  loginNameInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); handleLogin(); }
+  });
+  loginPinInputEl.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); handleLogin(); }
+  });
+
+  guestBtnEl.addEventListener("click", loginAsGuest);
+  logoutBtnEl.addEventListener("click", logout);
+  switchToAuthBtnEl.addEventListener("click", switchFromGuestToAuth);
+  closeAuthBtnEl.addEventListener("click", closeAuthOverlayIfPossible);
+  welcomeContinueBtnEl.addEventListener("click", hideWelcomeMessage);
 }
 
 document.addEventListener("DOMContentLoaded", init);

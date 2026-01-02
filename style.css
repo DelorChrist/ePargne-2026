@@ -45,13 +45,22 @@ body {
   gap: 1.5rem;
 }
 
+.app-hidden {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .app {
     grid-template-columns: 1fr;
   }
 }
 
-h1 {
+/* ========= HEADER (section) ========= */
+section > header {
+  margin-bottom: 1rem;
+}
+
+section > header h1 {
   font-size: 1.4rem;
   margin-bottom: 0.25rem;
 }
@@ -59,35 +68,18 @@ h1 {
 .subtitle {
   font-size: 0.9rem;
   color: var(--gray-600);
-  margin-bottom: 1rem;
 }
 
-/* ========= CALENDRIER ========= */
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.75rem;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+.base-amount-badge {
+  font-size: 0.8rem;
+  margin-left: 0.4rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: var(--accent-light);
+  color: var(--accent);
 }
 
-.calendar-title {
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.year-label {
-  font-size: 0.9rem;
-  color: var(--gray-600);
-}
-
-.month-nav {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-}
-
+/* ========= BOUTONS ========= */
 .btn {
   border: none;
   border-radius: 999px;
@@ -133,6 +125,32 @@ h1 {
 .btn-sm {
   padding: 0.25rem 0.55rem;
   font-size: 0.8rem;
+}
+
+/* ========= CALENDRIER ========= */
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.calendar-title {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.year-label {
+  font-size: 0.9rem;
+  color: var(--gray-600);
+}
+
+.month-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 .calendar-grid {
@@ -262,10 +280,6 @@ h1 {
   color: var(--accent);
 }
 
-.amount-red {
-  color: var(--danger);
-}
-
 .muted {
   font-size: 0.8rem;
   color: var(--gray-600);
@@ -347,6 +361,14 @@ h1 {
   margin-top: 0.4rem;
 }
 
+/* Bouton déconnexion dans la carte "Jour sélectionné" */
+.app-header-right {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.5rem;
+}
+
+/* ========= RESPONSIVE ========= */
 @media (max-width: 600px) {
   body {
     padding: 0.5rem;
@@ -365,7 +387,7 @@ h1 {
   }
 }
 
-/* ========= ÉCRAN D'ACCUEIL ========= */
+/* ========= OVERLAYS (AUTH + BIENVENUE) ========= */
 .welcome-overlay {
   position: fixed;
   inset: 0;
@@ -378,12 +400,13 @@ h1 {
 
 .welcome-card {
   background: #ffffff;
-  max-width: 360px;
+  max-width: 380px;
   width: 90%;
   border-radius: 0.9rem;
-  padding: 1.5rem 1.3rem;
+  padding: 1.5rem 1.3rem 1.3rem 1.3rem;
   text-align: center;
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.35);
+  position: relative;
 }
 
 .welcome-card h2 {
@@ -422,6 +445,7 @@ h1 {
 .welcome-btn {
   width: 100%;
   justify-content: center;
+  margin-top: 0.2rem;
 }
 
 .welcome-note {
@@ -430,7 +454,55 @@ h1 {
   color: var(--gray-600);
 }
 
-/* Quand l'écran d'accueil est caché */
+/* Auth mode toggle */
+.auth-toggle {
+  display: flex;
+  margin: 0.5rem 0 0.8rem 0;
+  border-radius: 999px;
+  background: var(--gray-100);
+  padding: 0.1rem;
+}
+
+.auth-toggle-btn {
+  flex: 1;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.2rem;
+  cursor: pointer;
+  color: var(--gray-600);
+}
+
+.auth-toggle-btn-active {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+.auth-form {
+  margin-top: 0.5rem;
+}
+
+.auth-form-hidden {
+  display: none;
+}
+
+/* Bouton retour en haut à gauche */
+.auth-close-btn {
+  border: none;
+  background: transparent;
+  color: var(--gray-600);
+  font-size: 0.8rem;
+  cursor: pointer;
+  position: absolute;
+  top: 0.8rem;
+  left: 0.8rem;
+}
+.auth-close-btn:hover {
+  color: var(--gray-800);
+}
+
+/* Cacher un overlay */
 .welcome-hidden {
   display: none;
 }
