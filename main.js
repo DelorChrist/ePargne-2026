@@ -7,6 +7,26 @@ const STEP_AMOUNT = 100;
 const GOAL_AMOUNT = 200000;
 const STORAGE_KEY = "epargne_2026_profiles";
 
+
+
+// ================== MODE SOMBRE GLOBAL ==================
+(function initDarkMode() {
+  const prefs = JSON.parse(localStorage.getItem("mc_preferences") || "{}");
+  if (prefs.darkMode) {
+    document.body.classList.add('dark-mode');
+  }
+})();
+
+// Exposer une fonction pour basculer le mode sombre
+window.toggleDarkMode = function(enabled) {
+  if (enabled) {
+    document.body.classList.add('dark-mode');
+  } else {
+    document.body.classList.remove('dark-mode');
+  }
+};
+
+
 // ================== ÉTAT EN MÉMOIRE ==================
 const state = {
   currentMonth: 0,
@@ -14,6 +34,7 @@ const state = {
   profiles: {},
   currentProfileId: null
 };
+
 
 // ================== OUTILS DE DATE ==================
 function pad2(n) {
@@ -48,6 +69,7 @@ function getDayIndexInYear(date) {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
+
 // ================== GESTION PROFILS ==================
 function getCurrentProfile() {
   if (!state.currentProfileId) return null;
@@ -57,6 +79,7 @@ function getCurrentProfile() {
 function normalizeProfileId(name) {
   return name.trim().toLowerCase().replace(/\s+/g, "_");
 }
+
 
 // ================== CALCUL COTISATION ==================
 function getContributionAmount(date) {
@@ -74,6 +97,7 @@ function getContributionAmount(date) {
   return baseAmount + (cyclePosition - 1) * STEP_AMOUNT;
 }
 
+
 // ================== LOCAL STORAGE ==================
 function loadFromStorage() {
   try {
@@ -86,7 +110,7 @@ function loadFromStorage() {
     const data = JSON.parse(raw);
     if (data && typeof data === "object") {
       state.profiles = data.profiles || {};
-      state.currentProfileId = data.currentProfileId || null; // on RESTAURE le client courant
+      state.currentProfileId = data.currentProfileId || null;
     }
   } catch (e) {
     console.error("Erreur de lecture localStorage", e);
@@ -94,7 +118,6 @@ function loadFromStorage() {
 }
 
 function saveToStorage() {
-  // NE SAUVE PAS LE PROFIL INVITÉ
   const profilesToSave = {};
   Object.values(state.profiles).forEach((p) => {
     if (p.id !== "guest") {
@@ -116,6 +139,7 @@ function saveToStorage() {
   }
 }
 
+
 // ================== RÈGLE ORDRE DE COTISATION ==================
 function canValidateDate(date) {
   const profile = getCurrentProfile();
@@ -134,6 +158,7 @@ function canValidateDate(date) {
   }
   return true;
 }
+
 
 // ================== DOM ELEMENTS ==================
 const appRootEl = document.getElementById("appRoot");
@@ -183,6 +208,10 @@ const welcomeTitleEl = document.getElementById("welcomeTitle");
 const welcomeMessageEl = document.getElementById("welcomeMessage");
 const welcomeContinueBtnEl = document.getElementById("welcomeContinueBtn");
 
+// Overlay de chargement (créé dynamiquement)
+let loadingOverlayEl = null;
+
+
 // ================== UTILS ==================
 const MONTH_NAMES = [
   "Janvier","Février","Mars","Avril","Mai","Juin",
@@ -194,6 +223,61 @@ const WEEKDAYS = ["Lun","Mar","Mer","Jeu","Ven","Sam","Dim"];
 function formatAmount(amount) {
   return amount.toLocaleString("fr-FR", { maximumFractionDigits: 0 }) + " F CFA";
 }
+
+
+// ================== OVERLAY DE CHARGEMENT ==================
+function createLoadingOverlay() {
+  if (loadingOverlayEl) return;
+  loadingOverlayEl = document.createElement("div");
+  loadingOverlayEl.id = "loadingOverlay";
+  loadingOverlayEl.style.position = "fixed";
+  loadingOverlayEl.style.inset = "0";
+  loadingOverlayEl.style.background = "rgba(15,23,42,0.9)";
+  loadingOverlayEl.style.display = "none";
+  loadingOverlayEl.style.alignItems = "center";
+  loadingOverlayEl.style.justifyContent = "center";
+  loadingOverlayEl.style.zIndex = "60";
+
+  loadingOverlayEl.innerHTML = `
+    <div style="
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:0.6rem;
+      color:#e5e7eb;
+      font-size:0.9rem;
+    ">
+      <div style="
+        width:32px;
+        height:32px;
+        border-radius:999px;
+        border:3px solid rgba(129,140,248,0.3);
+        border-top-color:#8b5cf6;
+        animation: mc-spin 0.7s linear infinite;
+      "></div>
+      <div>Chargement de ton espace...</div>
+    </div>
+  `;
+  document.body.appendChild(loadingOverlayEl);
+
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes mc-spin {
+      to { transform: rotate(360deg); }
+    }
+  `;
+  document.head.appendChild(style);
+}
+
+function showLoading() {
+  if (!loadingOverlayEl) createLoadingOverlay();
+  loadingOverlayEl.style.display = "flex";
+}
+
+function hideLoading() {
+  if (loadingOverlayEl) loadingOverlayEl.style.display = "none";
+}
+
 
 // ================== AFFICHAGE APP / OVERLAYS ==================
 function showApp() {
@@ -245,6 +329,27 @@ function setAuthError(message) {
   authErrorEl.style.display = message ? "block" : "none";
 }
 
+// helper pour afficher le site après un petit chargement
+function showSiteAfterLoading() {
+  const headerContainer = document.getElementById("appHeader");
+  const footerContainer = document.getElementById("appFooter");
+
+  showLoading();
+  setTimeout(() => {
+    hideLoading();
+    hideAuthOverlay();
+    hideWelcomeMessage();
+    showApp();
+    if (headerContainer) headerContainer.style.display = "block";
+    if (footerContainer) footerContainer.style.display = "block";
+    // IMPORTANT : synchroniser le vrai header injecté
+    if (window.mcToggleHeaderVisibility) {
+      window.mcToggleHeaderVisibility();
+    }
+  }, 800); // 800 ms de chargement
+}
+
+
 // ================== NOM & PROFIL COURANT + BOUTONS ==================
 function updateProfileHeader() {
   const profile = getCurrentProfile();
@@ -267,6 +372,7 @@ function updateProfileHeader() {
   logoutBtnEl.style.display = "inline-flex";
   switchToAuthBtnEl.style.display = "none";
 }
+
 
 // ================== TOTAL & JOUR SÉLECTIONNÉ ==================
 function updateTotalUI() {
@@ -329,6 +435,7 @@ function updateSelectedDayUI() {
     cancelContributionBtnEl.disabled = true;
   }
 }
+
 
 // ================== RENDU DU CALENDRIER ==================
 function renderCalendar() {
@@ -411,6 +518,7 @@ function renderCalendar() {
   }
 }
 
+
 // ================== ACTIONS CALENDRIER ==================
 function confirmContribution() {
   const profile = getCurrentProfile();
@@ -485,6 +593,7 @@ function goToNextMonth() {
   renderCalendar();
 }
 
+
 // ================== AUTH / PROFILS ==================
 function switchToLoginMode() {
   loginModeBtnEl.classList.add("auth-toggle-btn-active");
@@ -544,8 +653,14 @@ function handleSignup() {
   updateTotalUI();
   renderCalendar();
   updateSelectedDayUI();
-  hideAuthOverlay();
+
+  // synchro header injecté
+  if (window.mcToggleHeaderVisibility) {
+    window.mcToggleHeaderVisibility();
+  }
+
   showWelcomeMessage("signup");
+  showSiteAfterLoading();
 }
 
 function handleLogin() {
@@ -576,8 +691,13 @@ function handleLogin() {
   updateTotalUI();
   renderCalendar();
   updateSelectedDayUI();
-  hideAuthOverlay();
+
+  if (window.mcToggleHeaderVisibility) {
+    window.mcToggleHeaderVisibility();
+  }
+
   showWelcomeMessage("login");
+  showSiteAfterLoading();
 }
 
 function loginAsGuest() {
@@ -595,15 +715,18 @@ function loginAsGuest() {
   state.currentProfileId = profileId;
   state.selectedDate = null;
 
-  // pas de saveToStorage pour l'invité
   updateProfileHeader();
   updateTotalUI();
   renderCalendar();
   updateSelectedDayUI();
 
+  if (window.mcToggleHeaderVisibility) {
+    window.mcToggleHeaderVisibility();
+  }
+
   hideAuthOverlay();
   hideWelcomeMessage();
-  showApp();
+  showSiteAfterLoading();
 }
 
 function logout() {
@@ -611,12 +734,25 @@ function logout() {
   state.selectedDate = null;
 
   saveToStorage();
-  updateProfileHeader();
-  updateTotalUI();
-  renderCalendar();
-  updateSelectedDayUI();
-  hideApp();
-  showAuthOverlay();
+  
+  // Ne pas appeler les fonctions d'update si on n'est pas sur index.html
+  if (appRootEl) {
+    updateProfileHeader();
+    updateTotalUI();
+    renderCalendar();
+    updateSelectedDayUI();
+    hideApp();
+    showAuthOverlay();
+  }
+
+  const headerContainer = document.getElementById("appHeader");
+  const footerContainer = document.getElementById("appFooter");
+  if (headerContainer) headerContainer.style.display = "none";
+  if (footerContainer) footerContainer.style.display = "none";
+
+  if (window.mcToggleHeaderVisibility) {
+    window.mcToggleHeaderVisibility();
+  }
 }
 
 function switchFromGuestToAuth() {
@@ -630,14 +766,19 @@ function closeAuthOverlayIfPossible() {
     hideAuthOverlay();
     hideWelcomeMessage();
     showApp();
+    if (window.mcToggleHeaderVisibility) {
+      window.mcToggleHeaderVisibility();
+    }
   } else {
     alert("Tu dois d'abord te connecter, créer un profil ou continuer en invité.");
   }
 }
 
+
 // ================== INITIALISATION ==================
 function init() {
   loadFromStorage();
+  createLoadingOverlay();
 
   const now = new Date();
   state.currentMonth = (now.getFullYear() === YEAR) ? now.getMonth() : 0;
@@ -648,15 +789,24 @@ function init() {
   updateSelectedDayUI();
 
   const profile = getCurrentProfile();
+  const headerContainer = document.getElementById("appHeader");
+  const footerContainer = document.getElementById("appFooter");
+
   if (profile && profile.id !== "guest") {
-    // client déjà connecté avant le refresh
     hideAuthOverlay();
     hideWelcomeMessage();
     showApp();
+    if (headerContainer) headerContainer.style.display = "block";
+    if (footerContainer) footerContainer.style.display = "block";
   } else {
-    // pas de client, ou invité => on reste sur la page de connexion
     showAuthOverlay();
     hideApp();
+    if (headerContainer) headerContainer.style.display = "none";
+    if (footerContainer) footerContainer.style.display = "none";
+  }
+
+  if (window.mcToggleHeaderVisibility) {
+    window.mcToggleHeaderVisibility();
   }
 
   confirmBtnEl.addEventListener("click", confirmContribution);
@@ -694,5 +844,21 @@ function init() {
   closeAuthBtnEl.addEventListener("click", closeAuthOverlayIfPossible);
   welcomeContinueBtnEl.addEventListener("click", hideWelcomeMessage);
 }
+
+// exposer au global pour header.js
+window.getCurrentProfile = getCurrentProfile;
+window.logout = logout;
+
+// exposer au global pour header.js et autres pages
+window.getCurrentProfile = getCurrentProfile;
+window.logout = logout;
+window.saveToStorage = saveToStorage;
+window.normalizeProfileId = normalizeProfileId;
+window.state = state;
+window.updateProfileHeader = updateProfileHeader;
+window.updateTotalUI = updateTotalUI;
+window.renderCalendar = renderCalendar;
+window.updateSelectedDayUI = updateSelectedDayUI;
+
 
 document.addEventListener("DOMContentLoaded", init);

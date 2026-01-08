@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mon compte - Ma Cota</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="icon" type="image/png" href="../images/logo.png" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="../header/header.css" />
+  <link rel="stylesheet" href="../footer/footer.css" />
+  <link rel="stylesheet" href="../mon-compte/mon-compte.css" />
+</head>
+
+<body>
+  <!-- HEADER injecté -->
+  <div id="appHeader"></div>
+
+  <br><br>
+
+  <!-- Système de notifications toast -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Conteneur central pour l'app -->
+  <div class="app-wrapper">
+    <div class="mon-compte-page">
+      <!-- En-tête avec photo de profil -->
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <span id="profileInitials">MC</span>
+        </div>
+        <div class="profile-info">
+          <h1 id="profileNameDisplay">Mon compte</h1>
+          <p class="profile-subtitle">
+            Membre depuis <span id="memberSince">janvier 2026</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Statistiques rapides -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-money"></div>
+          <div class="stat-content">
+            <div class="stat-value" id="statTotal">0 F</div>
+            <div class="stat-label">Total épargné</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-check"></div>
+          <div class="stat-content">
+            <div class="stat-value" id="statDays">0</div>
+            <div class="stat-label">Jours validés</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-target"></div>
+          <div class="stat-content">
+            <div class="stat-value" id="statProgress">0%</div>
+            <div class="stat-label">Progression</div>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon stat-icon-fire"></div>
+          <div class="stat-content">
+            <div class="stat-value" id="statStreak">0</div>
+            <div class="stat-label">Série en cours</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Grille de sections -->
+      <div class="sections-grid">
+        <!-- Section Profil -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-with-icon">
+              <span class="card-icon card-icon-user"></span>
+              <div class="card-title">Informations du profil</div>
+            </div>
+          </div>
+
+          <div class="account-section">
+            <div class="account-field">
+              <label>Nom complet</label>
+              <input
+                id="accountNameInput"
+                type="text"
+                class="modern-input"
+                placeholder="Ton nom"
+              />
+            </div>
+
+            <div class="account-field">
+              <label>Montant de départ</label>
+              <div class="input-with-badge">
+                <input
+                  id="accountBaseInput"
+                  type="number"
+                  class="modern-input"
+                  min="100"
+                  step="100"
+                  placeholder="Ex : 100, 200, 500..."
+                />
+                <span class="input-badge">F CFA</span>
+              </div>
+              <p class="field-hint">
+                Le nouveau montant s'applique aux cotisations futures uniquement.
+              </p>
+            </div>
+
+            <button id="accountSaveBtn" class="btn btn-primary btn-modern">
+              Enregistrer les modifications
+            </button>
+          </div>
+        </div>
+
+        <!-- Section Sécurité -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-with-icon">
+              <span class="card-icon card-icon-lock"></span>
+              <div class="card-title">Sécurité</div>
+            </div>
+          </div>
+
+          <div class="account-section">
+            <div class="account-field">
+              <label>PIN actuel</label>
+              <input
+                id="oldPinInput"
+                type="password"
+                class="modern-input"
+                maxlength="4"
+                inputmode="numeric"
+                placeholder="••••"
+              />
+            </div>
+
+            <div class="account-field">
+              <label>Nouveau PIN (4 chiffres)</label>
+              <input
+                id="newPinInput"
+                type="password"
+                class="modern-input"
+                maxlength="4"
+                inputmode="numeric"
+                placeholder="••••"
+              />
+            </div>
+
+            <div class="account-field">
+              <label>Confirmer le nouveau PIN</label>
+              <input
+                id="confirmPinInput"
+                type="password"
+                class="modern-input"
+                maxlength="4"
+                inputmode="numeric"
+                placeholder="••••"
+              />
+            </div>
+
+            <button id="changePinBtn" class="btn btn-primary btn-modern ">
+              Modifier mon PIN
+            </button>
+          </div>
+        </div>
+
+        <!-- Section Préférences -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title-with-icon">
+              <span class="card-icon card-icon-settings"></span>
+              <div class="card-title">Préférences</div>
+            </div>
+          </div>
+
+          <div class="account-section">
+            <div class="preference-item">
+              <div class="preference-info">
+                <div class="preference-title">Notifications</div>
+                <div class="preference-desc">Recevoir des rappels quotidiens</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="notifToggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="preference-item">
+              <div class="preference-info">
+                <div class="preference-title">Mode sombre</div>
+                <div class="preference-desc">Activer le thème sombre</div>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="darkModeToggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="preference-item preference-item-column">
+              <div class="preference-info">
+                <div class="preference-title">Rappel automatique</div>
+                <div class="preference-desc">Recevoir un rappel chaque jour</div>
+              </div>
+              <div class="reminder-settings">
+                <label class="toggle-switch">
+                  <input type="checkbox" id="reminderToggle">
+                  <span class="toggle-slider"></span>
+                </label>
+                <select id="reminderTimeSelect" class="time-select" disabled>
+                  <option value="08:00">08:00</option>
+                  <option value="09:00">09:00</option>
+                  <option value="10:00">10:00</option>
+                  <option value="12:00">12:00</option>
+                  <option value="14:00">14:00</option>
+                  <option value="16:00">16:00</option>
+                  <option value="18:00">18:00</option>
+                  <option value="20:00" selected>20:00</option>
+                  <option value="21:00">21:00</option>
+                  <option value="22:00">22:00</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section Danger Zone -->
+        <div class="card card-danger">
+          <div class="card-header">
+            <div class="card-title-with-icon">
+              <span class="card-icon card-icon-warning"></span>
+              <div class="card-title">Zone dangereuse</div>
+            </div>
+          </div>
+
+          <div class="account-section">
+            <p class="danger-warning">
+              Les actions ci-dessous sont irréversibles. Procède avec prudence.
+            </p>
+
+            <button id="resetDataBtn" class="btn btn-danger-outline btn-modern">
+              Réinitialiser mes cotisations
+            </button>
+
+            <button id="deleteAccountBtn" class="btn btn-danger btn-modern">
+              Supprimer mon compte
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Activité récente -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title-with-icon">
+            <span class="card-icon card-icon-chart"></span>
+            <div class="card-title">Activité récente</div>
+          </div>
+        </div>
+
+        <div class="activity-list" id="activityList">
+          <p class="empty-state">Aucune activité récente.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER injecté -->
+  <div id="appFooter"></div>
+
+  <script src="../main.js"></script>
+  <script src="../header/header.js"></script>
+  <script src="../footer/footer.js"></script>
+  <script src="../mon-compte/mon-compte.js"></script>
+</body>
+</html>

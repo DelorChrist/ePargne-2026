@@ -1,0 +1,1 @@
+alert("Cette page est en cours de maintenance et sera disponible prochainement.");

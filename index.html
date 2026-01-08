@@ -7,248 +7,263 @@
 
   <link rel="icon" type="image/png" href="images/logo.png" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="header/header.css" />
+  <link rel="stylesheet" href="footer/footer.css" />
 </head>
 
 <body>
-  <!-- Écran d'authentification (connexion / inscription / invité) -->
-  <div id="authOverlay" class="welcome-overlay">
-    <div class="welcome-card">
-      <button id="closeAuthBtn" class="auth-close-btn" type="button" aria-label="Fermer">
-        ← Retour
-      </button>
+  <!-- HEADER injecté -->
+  <div id="appHeader"></div>
 
-      <h2 id="authTitle">Bienvenue</h2>
-      <p id="authSubtitle">
-        Es-tu prêt à épargner pour 2026 ?
-      </p>
+  <br><br>
 
-      <!-- Choix mode -->
-      <div class="auth-toggle">
-        <button id="loginModeBtn" class="auth-toggle-btn auth-toggle-btn-active">
-          Se connecter
+  <!-- Conteneur central pour l'app -->
+  <div class="app-wrapper">
+
+    <!-- Écran d'authentification (connexion / inscription / invité) -->
+    <div id="authOverlay" class="welcome-overlay">
+      <div class="welcome-card">
+        <button id="closeAuthBtn" class="auth-close-btn" type="button" aria-label="Fermer">
+          ← Retour
         </button>
-        <button id="signupModeBtn" class="auth-toggle-btn">
-          Créer un profil
-        </button>
-      </div>
 
-      <!-- Formulaire connexion -->
-      <div id="loginForm" class="auth-form">
-        <label class="welcome-label" for="loginNameInput">Ton nom :</label>
-        <input
-          type="text"
-          id="loginNameInput"
-          class="welcome-input"
-          placeholder="Ex : Bagui"
-        />
-
-        <label class="welcome-label" for="loginPinInput">PIN (4 chiffres) :</label>
-        <input
-          type="password"
-          id="loginPinInput"
-          class="welcome-input"
-          maxlength="4"
-          inputmode="numeric"
-          placeholder="****"
-        />
-
-        <button id="loginBtn" class="btn btn-primary welcome-btn">
-          Se connecter
-        </button>
-      </div>
-
-      <!-- Formulaire inscription -->
-      <div id="signupForm" class="auth-form auth-form-hidden">
-        <label class="welcome-label" for="signupNameInput">Ton nom :</label>
-        <input
-          type="text"
-          id="signupNameInput"
-          class="welcome-input"
-          placeholder="Ex : Amina"
-        />
-
-        <label class="welcome-label" for="signupPinInput">PIN (4 chiffres) :</label>
-        <input
-          type="password"
-          id="signupPinInput"
-          class="welcome-input"
-          maxlength="4"
-          inputmode="numeric"
-          placeholder="****"
-        />
-
-        <label class="welcome-label" for="baseAmountInput">
-          Montant de départ (minimum 100 F) :
-        </label>
-        <input
-          type="number"
-          id="baseAmountInput"
-          class="welcome-input"
-          min="100"
-          step="100"
-          placeholder="Ex : 100, 200, 500..."
-        />
-
-        <button id="signupBtn" class="btn btn-primary welcome-btn">
-          Créer mon plan
-        </button>
-      </div>
-
-      <button id="guestBtn" class="btn btn-outline welcome-btn" type="button">
-        Continuer en invité
-      </button>
-
-      <p class="welcome-note">
-        Chaque profil a son propre plan d'épargne, avec son montant de départ.
-      </p>
-      <p class="welcome-note" id="authError" style="color:#b91c1c; display:none;"></p>
-    </div>
-  </div>
-
-  <!-- Overlay de bienvenue après connexion / inscription (pas pour invité) -->
-  <div id="welcomeOverlay" class="welcome-overlay welcome-hidden">
-    <div class="welcome-card">
-      <h2 id="welcomeTitle">Bienvenue</h2>
-      <p id="welcomeMessage"></p>
-      <button id="welcomeContinueBtn" class="btn btn-primary welcome-btn">
-        Continuer
-      </button>
-    </div>
-  </div>
-
-  <!-- Application principale -->
-  <div class="app app-hidden" id="appRoot">
-    <!-- ========= COLONNE CALENDRIER ========= -->
-    <section>
-      <header>
-        <h1>
-          Plan d'épargne 2026 |
-          <span id="userNameDisplay">Invité</span>
-          <span id="userBaseAmountDisplay" class="base-amount-badge"></span>
-        </h1>
-        <p class="subtitle">
-          Suite arithmétique de base personnalisée, +100 F par jour, cycle de 10 jours sur toute l'année 2026.
+        <h2 id="authTitle">Bienvenue</h2>
+        <p id="authSubtitle">
+          Es-tu prêt à épargner pour 2026 ?
         </p>
-      </header>
 
-      <div class="calendar-header">
-        <div>
-          <div class="calendar-title" id="monthLabel"></div>
-          <div class="year-label">Année 2026 uniquement</div>
-        </div>
-        <div class="month-nav">
-          <button class="btn btn-sm" id="prevMonthBtn" type="button">◀</button>
-          <button class="btn btn-sm btn-outline" id="todayBtn" type="button">
-            Mois courant
+        <!-- Choix mode -->
+        <div class="auth-toggle">
+          <button id="loginModeBtn" class="auth-toggle-btn auth-toggle-btn-active">
+            Se connecter
           </button>
-          <button class="btn btn-sm" id="nextMonthBtn" type="button">▶</button>
+          <button id="signupModeBtn" class="auth-toggle-btn">
+            Créer un profil
+          </button>
         </div>
+
+        <!-- Formulaire connexion -->
+        <div id="loginForm" class="auth-form">
+          <label class="welcome-label" for="loginNameInput">Ton nom :</label>
+          <input
+            type="text"
+            id="loginNameInput"
+            class="welcome-input"
+            placeholder="Ex : Bagui"
+          />
+
+          <label class="welcome-label" for="loginPinInput">PIN (4 chiffres) :</label>
+          <input
+            type="password"
+            id="loginPinInput"
+            class="welcome-input"
+            maxlength="4"
+            inputmode="numeric"
+            placeholder="****"
+          />
+
+          <button id="loginBtn" class="btn btn-primary welcome-btn">
+            Se connecter
+          </button>
+        </div>
+
+        <!-- Formulaire inscription -->
+        <div id="signupForm" class="auth-form auth-form-hidden">
+          <label class="welcome-label" for="signupNameInput">Ton nom :</label>
+          <input
+            type="text"
+            id="signupNameInput"
+            class="welcome-input"
+            placeholder="Ex : Amina"
+          />
+
+          <label class="welcome-label" for="signupPinInput">PIN (4 chiffres) :</label>
+          <input
+            type="password"
+            id="signupPinInput"
+            class="welcome-input"
+            maxlength="4"
+            inputmode="numeric"
+            placeholder="****"
+          />
+
+          <label class="welcome-label" for="baseAmountInput">
+            Montant de départ (minimum 100 F) :
+          </label>
+          <input
+            type="number"
+            id="baseAmountInput"
+            class="welcome-input"
+            min="100"
+            step="100"
+            placeholder="Ex : 100, 200, 500..."
+          />
+
+          <button id="signupBtn" class="btn btn-primary welcome-btn">
+            Créer mon plan
+          </button>
+        </div>
+
+        <button id="guestBtn" class="btn btn-outline welcome-btn" type="button">
+          Continuer en invité
+        </button>
+
+        <p class="welcome-note">
+          Chaque profil a son propre plan d'épargne, avec son montant de départ.
+        </p>
+        <p class="welcome-note" id="authError" style="color:#b91c1c; display:none;"></p>
       </div>
+    </div>
 
-      <div class="calendar-grid" id="calendarGrid"></div>
-    </section>
-
-    <!-- ========= COLONNE INFOS ========= -->
-    <aside class="side-panel">
-      <!-- Carte total épargne -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-title">Total épargné</div>
-            <div class="card-subtitle">Objectif : 200 000 F CFA</div>
-          </div>
-          <div style="display:flex; flex-direction:column; gap:0.25rem; align-items:flex-end;">
-            <div class="amount amount-green" id="totalAmount">0 F CFA</div>
-          </div>
-        </div>
-
-        <div class="progress-container">
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="progressBar"></div>
-          </div>
-          <div class="progress-text">
-            <span id="progressPercent">0%</span>
-            <span id="remainingAmount">Reste 200 000 F</span>
-          </div>
-        </div>
+    <!-- Overlay de bienvenue après connexion / inscription (pas pour invité) -->
+    <div id="welcomeOverlay" class="welcome-overlay welcome-hidden">
+      <div class="welcome-card">
+        <h2 id="welcomeTitle">Bienvenue</h2>
+        <p id="welcomeMessage"></p>
+        <button id="welcomeContinueBtn" class="btn btn-primary welcome-btn">
+          Continuer
+        </button>
       </div>
+    </div>
 
-      <!-- Carte jour sélectionné -->
-      <div class="card">
-        <div class="card-header">
+    <!-- Application principale -->
+    <div class="app app-hidden" id="appRoot">
+      <!-- ========= COLONNE CALENDRIER ========= -->
+      <section>
+        <header>
+          <h1>
+            Plan d'épargne 2026 |
+            <span id="userNameDisplay">Invité</span>
+            <span id="userBaseAmountDisplay" class="base-amount-badge"></span>
+          </h1>
+          <p class="subtitle">
+            Suite arithmétique de base personnalisée, +100 F par jour, cycle de 10 jours sur toute l'année 2026.
+          </p>
+        </header>
+
+        <div class="calendar-header">
           <div>
-            <div class="card-title">Jour sélectionné</div>
-            <div class="card-subtitle" id="selectedDateLabel">
-              Aucun jour sélectionné
+            <div class="calendar-title" id="monthLabel"></div>
+            <div class="year-label">Année 2026 uniquement</div>
+          </div>
+          <div class="month-nav">
+            <button class="btn btn-sm" id="prevMonthBtn" type="button">◀</button>
+            <button class="btn btn-sm btn-outline" id="todayBtn" type="button">
+              Mois courant
+            </button>
+            <button class="btn btn-sm" id="nextMonthBtn" type="button">▶</button>
+          </div>
+        </div>
+
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </section>
+
+      <!-- ========= COLONNE INFOS ========= -->
+      <aside class="side-panel">
+        <!-- Carte total épargne -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Total épargné</div>
+              <div class="card-subtitle">Objectif : 200 000 F CFA</div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:0.25rem; align-items:flex-end;">
+              <div class="amount amount-green" id="totalAmount">0 F CFA</div>
             </div>
           </div>
-          <div class="amount-small" id="selectedAmountLabel">
-            0 F CFA
+
+          <div class="progress-container">
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+            <div class="progress-text">
+              <span id="progressPercent">0%</span>
+              <span id="remainingAmount">Reste 200 000 F</span>
+            </div>
           </div>
         </div>
 
-        <div class="current-day-info">
-          <div>
-            Cotisation du jour :
-            <span class="highlight" id="selectedAmountText">—</span>
+        <!-- Carte jour sélectionné -->
+        <div class="card">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Jour sélectionné</div>
+              <div class="card-subtitle" id="selectedDateLabel">
+                Aucun jour sélectionné
+              </div>
+            </div>
+            <div class="amount-small" id="selectedAmountLabel">
+              0 F CFA
+            </div>
           </div>
-          <div>
-            Statut :
-            <span id="selectedStatusBadge" class="status-badge status-future">
-              Aucun
-            </span>
+
+          <div class="current-day-info">
+            <div>
+              Cotisation du jour :
+              <span class="highlight" id="selectedAmountText">—</span>
+            </div>
+            <div>
+              Statut :
+              <span id="selectedStatusBadge" class="status-badge status-future">
+                Aucun
+              </span>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn btn-primary" id="confirmBtn" type="button" disabled>
+              J'ai cotisé ce jour
+            </button>
+
+            <button class="btn btn-sm btn-outline" id="cancelContributionBtn" type="button" disabled>
+              Annuler la cotisation
+            </button>
+
+            <button class="btn btn-sm btn-outline" id="unselectBtn" type="button">
+              Désélectionner
+            </button>
+          </div>
+          <p class="note">
+            Un jour déjà validé ne peut pas être validé deux fois. Les données
+            sont sauvegardées automatiquement dans votre navigateur (localStorage).
+          </p>
+          <p class="note">
+            Profil courant : <span id="currentProfileInfo">aucun</span>
+          </p>
+          <p class="note">
+            <button id="switchToAuthBtn" class="btn btn-sm btn-outline" type="button">
+              Se connecter / Créer un profil
+            </button>
+          </p>
+          <div class="app-header-right">
+            <button id="logoutBtn" class="btn btn-sm btn-outline" type="button">
+            </button>
           </div>
         </div>
 
-        <div class="actions">
-          <button class="btn btn-primary" id="confirmBtn" type="button" disabled>
-            J'ai cotisé ce jour
-          </button>
-
-          <button class="btn btn-sm btn-outline" id="cancelContributionBtn" type="button" disabled>
-            Annuler la cotisation
-          </button>
-
-          <button class="btn btn-sm btn-outline" id="unselectBtn" type="button">
-            Désélectionner
-          </button>
+        <!-- Carte rappel règle -->
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Rappel de la règle</div>
+          </div>
+          <ul class="muted" style="padding-left: 1rem; font-size: 0.8rem;">
+            <li>Montant de départ choisi à la création du profil (minimum 100 F).</li>
+            <li>Chaque jour suivant : +100 F.</li>
+            <li>Jour 10 : départ + 900 F.</li>
+            <li>Cycle de 10 jours, puis retour au montant de départ.</li>
+            <li>Cycle répété sur toute l'année 2026.</li>
+            <li>Validation obligatoire dans l'ordre (jour par jour).</li>
+          </ul>
         </div>
-        <p class="note">
-          Un jour déjà validé ne peut pas être validé deux fois. Les données
-          sont sauvegardées automatiquement dans votre navigateur (localStorage).
-        </p>
-        <p class="note">
-          Profil courant : <span id="currentProfileInfo">aucun</span>
-        </p>
-        <p class="note">
-          <button id="switchToAuthBtn" class="btn btn-sm btn-outline" type="button">
-            Se connecter / Créer un profil
-          </button>
-        </p>
-              <div class="app-header-right">
-        <button id="logoutBtn" class="btn btn-sm btn-outline" type="button">
-          Se déconnecter
-        </button>   
-      </div>
-      </div>
-
-      <!-- Carte rappel règle -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Rappel de la règle</div>
-        </div>
-        <ul class="muted" style="padding-left: 1rem; font-size: 0.8rem;">
-          <li>Montant de départ choisi à la création du profil (minimum 100 F).</li>
-          <li>Chaque jour suivant : +100 F.</li>
-          <li>Jour 10 : départ + 900 F.</li>
-          <li>Cycle de 10 jours, puis retour au montant de départ.</li>
-          <li>Cycle répété sur toute l'année 2026.</li>
-          <li>Validation obligatoire dans l'ordre (jour par jour).</li>
-        </ul>
-      </div>
-    </aside>
+      </aside>
+    </div>
   </div>
 
+  <!-- FOOTER injecté -->
+  <div id="appFooter"></div>
+
   <script src="main.js"></script>
+  <script src="header/header.js"></script>
+  <script src="footer/footer.js"></script>
 </body>
 </html>

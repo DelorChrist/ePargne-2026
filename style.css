@@ -22,15 +22,20 @@
 }
 
 body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   background: var(--bg);
   color: var(--gray-800);
   line-height: 1.4;
   padding: 1rem;
-  display: flex;
-  justify-content: center;
 }
+
+
+/* conteneur central pour l'app */
+.app-wrapper {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
 
 /* ========= LAYOUT GLOBAL ========= */
 .app {
@@ -505,4 +510,215 @@ section > header h1 {
 /* Cacher un overlay */
 .welcome-hidden {
   display: none;
+}
+/* ========== MODE SOMBRE GLOBAL ========== */
+body.dark-mode {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+body.dark-mode .app {
+  background: #1f2937;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .app-wrapper {
+  background: #111827;
+}
+
+body.dark-mode section > header h1,
+body.dark-mode .calendar-title,
+body.dark-mode .card-title {
+  color: #f9fafb;
+}
+
+body.dark-mode .subtitle,
+body.dark-mode .year-label,
+body.dark-mode .card-subtitle,
+body.dark-mode .muted {
+  color: #9ca3af;
+}
+
+body.dark-mode .calendar-grid {
+  background: transparent;
+}
+
+body.dark-mode .weekday {
+  color: #9ca3af;
+}
+
+body.dark-mode .day {
+  background: #374151;
+  color: #e5e7eb;
+  border-color: #4b5563;
+}
+
+body.dark-mode .day:hover:not(.empty):not(.disabled) {
+  background: #4b5563;
+}
+
+body.dark-mode .day.current {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.6);
+}
+
+body.dark-mode .day.selected {
+  background: #1e3a8a;
+  border-color: var(--primary);
+}
+
+body.dark-mode .day.validated {
+  background: #065f46;
+  border-color: var(--accent);
+}
+
+body.dark-mode .day.validated .day-number {
+  color: #6ee7b7;
+}
+
+body.dark-mode .day.disabled {
+  opacity: 0.4;
+}
+
+body.dark-mode .day-amount {
+  color: #9ca3af;
+}
+
+body.dark-mode .card {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+body.dark-mode .side-panel {
+  background: transparent;
+}
+
+body.dark-mode .btn {
+  background: #374151;
+  color: #e5e7eb;
+}
+
+body.dark-mode .btn:hover:enabled {
+  background: #4b5563;
+}
+
+body.dark-mode .btn-primary {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+body.dark-mode .btn-primary:hover:enabled {
+  background: var(--primary-dark);
+}
+
+body.dark-mode .btn-outline {
+  background: transparent;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+body.dark-mode .btn-outline:hover:enabled {
+  background: #374151;
+}
+
+body.dark-mode .progress-bar-bg {
+  background: #374151;
+}
+
+body.dark-mode .status-badge {
+  background: #374151;
+  color: #9ca3af;
+}
+
+body.dark-mode .status-ok {
+  background: #065f46;
+  color: #6ee7b7;
+}
+
+body.dark-mode .status-pending {
+  background: #78350f;
+  color: #fde047;
+}
+
+body.dark-mode .status-future {
+  background: #374151;
+  color: #9ca3af;
+}
+
+body.dark-mode .note {
+  color: #9ca3af;
+}
+
+body.dark-mode .highlight {
+  color: #60a5fa;
+}
+
+body.dark-mode .amount,
+body.dark-mode .amount-small {
+  color: #e5e7eb;
+}
+
+body.dark-mode .amount-green {
+  color: #6ee7b7;
+}
+
+/* Overlays en mode sombre */
+body.dark-mode .welcome-overlay {
+  background: rgba(0, 0, 0, 0.85);
+}
+
+body.dark-mode .welcome-card {
+  background: #1f2937;
+  color: #e5e7eb;
+}
+
+body.dark-mode .welcome-card h2 {
+  color: #f9fafb;
+}
+
+body.dark-mode .welcome-input {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+body.dark-mode .welcome-input:focus {
+  border-color: var(--primary);
+  background: #4b5563;
+}
+
+body.dark-mode .welcome-input::placeholder {
+  color: #6b7280;
+}
+
+body.dark-mode .auth-toggle {
+  background: #374151;
+}
+
+body.dark-mode .auth-toggle-btn {
+  color: #9ca3af;
+}
+
+body.dark-mode .auth-toggle-btn-active {
+  background: var(--primary);
+  color: #ffffff;
+}
+
+body.dark-mode .welcome-note {
+  color: #9ca3af;
+}
+
+/* Header et Footer en mode sombre */
+body.dark-mode .mc-header {
+  background: #0f172a;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .main-footer {
+  background: #0f172a;
+  border-top-color: #1f2937;
+}
+
+body.dark-mode .footer-bottom {
+  border-top-color: #1f2937;
 }

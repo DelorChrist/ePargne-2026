@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin - Plan d'épargne 2026</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/png" href="../images/logo.png" />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <div class="admin-layout">
+    <header class="admin-header">
+      <div>
+        <div class="admin-title">Dashboard Administrateur</div>
+        <div class="admin-subtitle">
+          Vue globale des profils, soldes et paramètres du plan d'épargne 2026.
+        </div>
+      </div>
+      <div style="display:flex; gap:0.5rem;">
+        <button id="adminBackBtn" class="btn btn-outline">Retour à l'application</button>
+        <button id="adminLogoutBtn" class="btn btn-outline danger">Déconnexion admin</button>
+      </div>
+    </header>
+
+    <!-- Carte infos globales -->
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-title">Statistiques globales</div>
+      </div>
+      <div style="display:flex; flex-wrap:wrap; gap:1rem; font-size:0.85rem;">
+        <div>
+          Nombre de profils : <span id="adminTotalProfiles" class="amount-text">0</span>
+        </div>
+        <div>
+          Total cumulé de tous les clients :
+          <span id="adminGlobalTotal" class="amount-text">0 F</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Carte liste des clients -->
+    <section class="admin-card">
+      <div class="admin-card-header">
+        <div class="admin-card-title">Clients inscrits</div>
+        <div class="admin-meta">
+          Lecture/édition locale (données stockées dans le navigateur).
+        </div>
+      </div>
+
+      <div class="admin-user-row" style="font-weight:600; border-bottom:1px solid #374151;">
+        <div>Nom</div>
+        <div>Mise de départ (modifiable)</div>
+        <div>Total cotisé</div>
+        <div>PIN (4 chiffres)</div>
+      </div>
+
+      <div id="adminUsersContainer"></div>
+    </section>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+</html>
