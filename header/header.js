@@ -14,13 +14,13 @@
       document.body.classList.add('dark-mode');
     }
 
-    const headerEl = document.getElementById("mcHeader");
-    const logoutBtn = document.getElementById("mcLogoutBtn");
-    const accountLink = document.getElementById("mcAccountLink");
+    const headerEl       = document.getElementById("mcHeader");
+    const logoutBtn      = document.getElementById("mcLogoutBtn");
+    const accountLink    = document.getElementById("mcAccountLink");
 
-    const burgerBtn = document.getElementById("mcBurgerBtn");
-    const mobileMenu = document.getElementById("mcMobileMenu");
-    const mobileLogoutBtn = document.getElementById("mcMobileLogout");
+    const burgerBtn      = document.getElementById("mcBurgerBtn");
+    const mobileMenu     = document.getElementById("mcMobileMenu");
+    const mobileLogoutBtn= document.getElementById("mcMobileLogout");
 
     function toggleHeaderVisibility() {
       if (!headerEl) return;
@@ -46,7 +46,6 @@
         localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
       }
       
-      // Redirection vers l'accueil dans tous les cas
       setTimeout(() => {
         window.location.href = "/index.html";
       }, 100);
@@ -63,7 +62,6 @@
 
     if (accountLink) {
       accountLink.addEventListener("click", (e) => {
-        // Si on est déjà sur la page Mon compte, ne pas recharger
         if (window.location.pathname.includes('/mon-compte/')) {
           e.preventDefault();
         }
@@ -71,16 +69,33 @@
     }
 
     if (burgerBtn && mobileMenu) {
+      function closeMobileMenu() {
+        mobileMenu.style.display = "none";
+      }
+
       burgerBtn.addEventListener("click", () => {
         const isOpen = mobileMenu.style.display === "flex";
         mobileMenu.style.display = isOpen ? "none" : "flex";
       });
-    }
 
-    if (mobileMenu) {
+      // Fermer quand on clique sur un lien
       mobileMenu.addEventListener("click", (e) => {
         if (e.target.tagName === "A") {
-          mobileMenu.style.display = "none";
+          closeMobileMenu();
+        }
+      });
+
+      // Fermer au scroll
+      window.addEventListener("scroll", () => {
+        if (mobileMenu.style.display === "flex") {
+          closeMobileMenu();
+        }
+      });
+
+      // Fermer au resize (et éviter menu ouvert sur desktop)
+      window.addEventListener("resize", () => {
+        if (window.innerWidth >= 768) {
+          closeMobileMenu();
         }
       });
     }

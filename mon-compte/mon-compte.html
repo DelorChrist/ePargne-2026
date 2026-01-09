@@ -130,38 +130,47 @@
           <div class="account-section">
             <div class="account-field">
               <label>PIN actuel</label>
-              <input
-                id="oldPinInput"
-                type="password"
-                class="modern-input"
-                maxlength="4"
-                inputmode="numeric"
-                placeholder="••••"
-              />
+              <div class="input-with-toggle">
+                <input
+                  id="oldPinInput"
+                  type="password"
+                  class="modern-input"
+                  maxlength="4"
+                  inputmode="numeric"
+                  placeholder="••••"
+                />
+                <button type="button" class="toggle-visibility-btn" data-target="oldPinInput">👁</button>
+              </div>
             </div>
 
             <div class="account-field">
               <label>Nouveau PIN (4 chiffres)</label>
-              <input
-                id="newPinInput"
-                type="password"
-                class="modern-input"
-                maxlength="4"
-                inputmode="numeric"
-                placeholder="••••"
-              />
+              <div class="input-with-toggle">
+                <input
+                  id="newPinInput"
+                  type="password"
+                  class="modern-input"
+                  maxlength="4"
+                  inputmode="numeric"
+                  placeholder="••••"
+                />
+                <button type="button" class="toggle-visibility-btn" data-target="newPinInput">👁</button>
+              </div>
             </div>
 
             <div class="account-field">
               <label>Confirmer le nouveau PIN</label>
-              <input
-                id="confirmPinInput"
-                type="password"
-                class="modern-input"
-                maxlength="4"
-                inputmode="numeric"
-                placeholder="••••"
-              />
+              <div class="input-with-toggle">
+                <input
+                  id="confirmPinInput"
+                  type="password"
+                  class="modern-input"
+                  maxlength="4"
+                  inputmode="numeric"
+                  placeholder="••••"
+                />
+                <button type="button" class="toggle-visibility-btn" data-target="confirmPinInput">👁</button>
+              </div>
             </div>
 
             <button id="changePinBtn" class="btn btn-primary btn-modern ">
@@ -212,18 +221,13 @@
                   <input type="checkbox" id="reminderToggle">
                   <span class="toggle-slider"></span>
                 </label>
-                <select id="reminderTimeSelect" class="time-select" disabled>
-                  <option value="08:00">08:00</option>
-                  <option value="09:00">09:00</option>
-                  <option value="10:00">10:00</option>
-                  <option value="12:00">12:00</option>
-                  <option value="14:00">14:00</option>
-                  <option value="16:00">16:00</option>
-                  <option value="18:00">18:00</option>
-                  <option value="20:00" selected>20:00</option>
-                  <option value="21:00">21:00</option>
-                  <option value="22:00">22:00</option>
-                </select>
+                <div class="reminder-time-group">
+                  <input id="reminderHour"   type="number" min="0"  max="23" class="time-input" placeholder="HH" disabled>
+                  <span>:</span>
+                  <input id="reminderMinute" type="number" min="0"  max="59" class="time-input" placeholder="MM" disabled>
+                  <span>:</span>
+                  <input id="reminderSecond" type="number" min="0"  max="59" class="time-input" placeholder="SS" disabled>
+                </div>
               </div>
             </div>
           </div>

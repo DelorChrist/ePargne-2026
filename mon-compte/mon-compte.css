@@ -713,3 +713,46 @@ body.dark-mode .time-select {
     max-width: none;
   }
 }
+
+.input-with-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.toggle-visibility-btn {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0.25rem;
+}
+
+.reminder-time-group {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.time-input {
+  width: 3rem;
+  padding: 0.4rem 0.5rem;
+  border-radius: 0.4rem;
+  border: 2px solid #e5e7eb;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.time-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+body.dark-mode .time-input {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+body.dark-mode .toggle-visibility-btn {
+  color: #ffffff;
+}

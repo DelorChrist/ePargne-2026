@@ -9,7 +9,6 @@
       if (profile && profile.id !== "guest") {
         headerEl.style.display = "flex";
         initMonComptePage();
-
       } else {
         window.location.href = "/index.html";
       }
@@ -32,6 +31,7 @@ function initMonComptePage() {
   setupPreferences();
   setupDangerZone(profile);
   loadRecentActivity(profile);
+  setupPasswordVisibilityToggles();
 }
 
 // S'assurer que le logout fonctionne sur cette page
@@ -45,7 +45,6 @@ window.logoutFromAccount = function() {
   }
 };
 
-
 // ========== SYSTÈME DE NOTIFICATIONS TOAST ==========
 function showToast(type, title, message) {
   const container = document.getElementById("toastContainer");
@@ -55,7 +54,7 @@ function showToast(type, title, message) {
   toast.className = `toast toast-${type}`;
   
   const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : '!';
-  
+
   toast.innerHTML = `
     <div class="toast-icon">${icon}</div>
     <div class="toast-content">
@@ -264,10 +263,12 @@ function changePIN(profile, oldPinInput, newPinInput, confirmPinInput) {
 
 // ========== PRÉFÉRENCES ==========
 function setupPreferences() {
-  const notifToggle = document.getElementById("notifToggle");
+  const notifToggle    = document.getElementById("notifToggle");
   const darkModeToggle = document.getElementById("darkModeToggle");
   const reminderToggle = document.getElementById("reminderToggle");
-  const reminderTimeSelect = document.getElementById("reminderTimeSelect");
+  const reminderHourEl = document.getElementById("reminderHour");
+  const reminderMinEl  = document.getElementById("reminderMinute");
+  const reminderSecEl  = document.getElementById("reminderSecond");
 
   const prefs = JSON.parse(localStorage.getItem("mc_preferences") || "{}");
 
@@ -280,8 +281,11 @@ function setupPreferences() {
       }
       prefs.notifications = notifToggle.checked;
       localStorage.setItem("mc_preferences", JSON.stringify(prefs));
-      showToast('success', 'Préférence enregistrée', 
-        notifToggle.checked ? 'Notifications activées.' : 'Notifications désactivées.');
+      showToast(
+        'success',
+        'Préférence enregistrée',
+        notifToggle.checked ? 'Notifications activées.' : 'Notifications désactivées.'
+      );
     });
   }
 
@@ -293,7 +297,6 @@ function setupPreferences() {
       prefs.darkMode = darkModeToggle.checked;
       localStorage.setItem("mc_preferences", JSON.stringify(prefs));
       
-      // Appliquer globalement via main.js
       if (window.toggleDarkMode) {
         window.toggleDarkMode(darkModeToggle.checked);
       }
@@ -306,64 +309,105 @@ function setupPreferences() {
     });
   }
 
-  // Rappel automatique
-  if (reminderToggle && reminderTimeSelect) {
+  // Rappel automatique avec heures/minutes/secondes
+  if (reminderToggle && reminderHourEl && reminderMinEl && reminderSecEl) {
+    const defaultTime = prefs.reminderTime || "20:00:00";
+    const [hDef, mDef, sDef] = defaultTime.split(':').map(Number);
+
     reminderToggle.checked = prefs.reminder || false;
-    reminderTimeSelect.value = prefs.reminderTime || "20:00";
-    reminderTimeSelect.disabled = !reminderToggle.checked;
+
+    reminderHourEl.value = isNaN(hDef) ? "20" : hDef.toString().padStart(2, '0');
+    reminderMinEl.value  = isNaN(mDef) ? "00" : mDef.toString().padStart(2, '0');
+    reminderSecEl.value  = isNaN(sDef) ? "00" : sDef.toString().padStart(2, '0');
+
+    const setDisabled = (v) => {
+      reminderHourEl.disabled = !v;
+      reminderMinEl.disabled  = !v;
+      reminderSecEl.disabled  = !v;
+    };
+
+    setDisabled(reminderToggle.checked);
 
     reminderToggle.addEventListener("change", () => {
       prefs.reminder = reminderToggle.checked;
-      reminderTimeSelect.disabled = !reminderToggle.checked;
       localStorage.setItem("mc_preferences", JSON.stringify(prefs));
-      
+      setDisabled(reminderToggle.checked);
+
+      const timeStr = `${reminderHourEl.value || "20"}:${reminderMinEl.value || "00"}:${reminderSecEl.value || "00"}`;
+      prefs.reminderTime = timeStr;
+      localStorage.setItem("mc_preferences", JSON.stringify(prefs));
+
       if (reminderToggle.checked) {
-        scheduleReminder(prefs.reminderTime || "20:00");
-        showToast('success', 'Rappel activé', 
-          `Tu recevras un rappel à ${prefs.reminderTime || "20:00"} chaque jour.`);
+        scheduleReminder(timeStr);
+        showToast('success', 'Rappel activé', `Tu recevras un rappel à ${timeStr} chaque jour.`);
       } else {
         showToast('success', 'Rappel désactivé', 'Rappel automatique désactivé.');
       }
     });
 
-    reminderTimeSelect.addEventListener("change", () => {
-      prefs.reminderTime = reminderTimeSelect.value;
+    function onTimeChange() {
+      let h = parseInt(reminderHourEl.value, 10);
+      let m = parseInt(reminderMinEl.value, 10);
+      let s = parseInt(reminderSecEl.value, 10);
+
+      if (isNaN(h) || h < 0 || h > 23) h = 20;
+      if (isNaN(m) || m < 0 || m > 59) m = 0;
+      if (isNaN(s) || s < 0 || s > 59) s = 0;
+
+      reminderHourEl.value = h.toString().padStart(2, '0');
+      reminderMinEl.value  = m.toString().padStart(2, '0');
+      reminderSecEl.value  = s.toString().padStart(2, '0');
+
+      const timeStr = `${reminderHourEl.value}:${reminderMinEl.value}:${reminderSecEl.value}`;
+      prefs.reminderTime = timeStr;
       localStorage.setItem("mc_preferences", JSON.stringify(prefs));
-      scheduleReminder(reminderTimeSelect.value);
-      showToast('success', 'Heure mise à jour', 
-        `Rappel programmé pour ${reminderTimeSelect.value}.`);
-    });
+      scheduleReminder(timeStr);
+      showToast('success', 'Heure mise à jour', `Rappel programmé pour ${timeStr}.`);
+    }
+
+    reminderHourEl.addEventListener("change", onTimeChange);
+    reminderMinEl.addEventListener("change", onTimeChange);
+    reminderSecEl.addEventListener("change", onTimeChange);
   }
 }
 
+// ========== NOTIFICATIONS NAVIGATEUR ==========
 function requestNotificationPermission() {
-  if (!("Notification" in window)) {
-    showToast('warning', 'Non supporté', 'Les notifications ne sont pas supportées sur ce navigateur.');
+  const NotificationAPI = window.Notification || window.webkitNotifications || navigator.mozNotification;
+  if (!NotificationAPI) {
+    showToast('warning', 'Non supporté', 'Les notifications système ne sont pas supportées sur ce navigateur.')
     return;
   }
 
   if (Notification.permission === "granted") {
-    showToast('success', 'Autorisé', 'Les notifications sont déjà autorisées.');
+    showToast('success', 'Autorisé', 'Les notifications sont déjà autorisées.')
     return;
   }
 
   if (Notification.permission !== "denied") {
     Notification.requestPermission().then(permission => {
       if (permission === "granted") {
-        showToast('success', 'Autorisé', 'Notifications autorisées avec succès.');
-        new Notification("Ma Cota", {
-          body: "Tu recevras maintenant des rappels pour tes cotisations.",
-          icon: "/images/logo.png"
-        });
+        showToast('success', 'Autorisé', 'Notifications autorisées avec succès.')
+        try {
+          new Notification("Ma Cota", {
+            body: "Tu recevras maintenant des rappels pour tes cotisations.",
+            icon: "/images/logo.png"
+          });
+        } catch (e) {
+          console.warn("Notification non affichée : ", e);
+        }
       } else {
         showToast('error', 'Refusé', 'Notifications refusées.');
       }
     });
+  } else {
+    showToast('error', 'Refusé', 'Notifications déjà refusées dans le navigateur.');
   }
 }
 
+// ========== PLANIFICATION DU RAPPEL ==========
 function scheduleReminder(time) {
-  const [hours, minutes] = time.split(':').map(Number);
+  const [hours, minutes, seconds = 0] = time.split(':').map(Number);
   const now = new Date();
   const scheduledTime = new Date(
     now.getFullYear(),
@@ -371,7 +415,7 @@ function scheduleReminder(time) {
     now.getDate(),
     hours,
     minutes,
-    0
+    seconds || 0
   );
 
   if (scheduledTime < now) {
@@ -381,7 +425,7 @@ function scheduleReminder(time) {
   const timeUntilReminder = scheduledTime - now;
 
   setTimeout(() => {
-    if (Notification.permission === "granted") {
+    if ("Notification" in window && Notification.permission === "granted") {
       new Notification("Ma Cota - Rappel quotidien", {
         body: "N'oublie pas de valider ta cotisation du jour !",
         icon: "/images/logo.png",
@@ -416,7 +460,6 @@ function setupDangerZone(profile) {
 
   if (deleteBtn) {
     deleteBtn.addEventListener("click", () => {
-      
       const confirmText = prompt(
         "Cette action supprimera définitivement ton compte.\n\nTape 'SUPPRIMER' pour confirmer :"
       );
@@ -483,4 +526,19 @@ function getTimeAgo(date) {
   if (diff < 86400) return `Il y a ${Math.floor(diff / 3600)}h`;
   if (diff < 604800) return `Il y a ${Math.floor(diff / 86400)}j`;
   return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+// ========== VISIBILITÉ DES PINS ==========
+function setupPasswordVisibilityToggles() {
+  document.querySelectorAll(".toggle-visibility-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.getAttribute("data-target");
+      const input = document.getElementById(targetId);
+      if (!input) return;
+
+      const isPassword = input.type === "password";
+      input.type = isPassword ? "text" : "password";
+      btn.textContent = isPassword ? "👁‍🗨" : "👁";
+      });
+  });
 }
